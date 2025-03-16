@@ -86,18 +86,21 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  Widget _buildPlayerScoreCard(int playerIndex) {
+  Widget _buildPlayerScoreCard(int playerIndex, BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    double fontSize = screenWidth > 600 ? 24 : 18;
+
     return Column(
       children: [
         Text(
           playerNames[playerIndex],
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.bold),
         ),
         SizedBox(height: 8),
         Text(
           '${totalScores[playerIndex]}',
           style: TextStyle(
-            fontSize: 24,
+            fontSize: fontSize + 6,
             fontWeight: FontWeight.bold,
             color: totalScores[playerIndex] >= 0 ? Colors.green : Colors.red,
           ),
@@ -129,12 +132,15 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildPlayerInputFields(int playerIndex) {
+  Widget _buildPlayerInputFields(int playerIndex, BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    double padding = screenWidth > 600 ? 24.0 : 16.0;
+
     return Expanded(
       child: Card(
-        margin: EdgeInsets.all(8.0),
+        margin: EdgeInsets.all(padding),
         child: Padding(
-          padding: EdgeInsets.all(16.0),
+          padding: EdgeInsets.all(padding),
           child: Column(
             children: [
               for (int j = 0; j < controllers[playerIndex].length; j++)
@@ -155,6 +161,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    double padding = screenWidth > 600 ? 24.0 : 16.0;
+
     return Scaffold(
       appBar: AppBar(
         title: Text('台灣麻將分數記錄'),
@@ -163,11 +172,11 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           children: [
             Padding(
-              padding: EdgeInsets.all(16.0),
+              padding: EdgeInsets.all(padding),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  for (int i = 0; i < 3; i++) _buildPlayerScoreCard(i),
+                  for (int i = 0; i < 3; i++) _buildPlayerScoreCard(i, context),
                 ],
               ),
             ),
@@ -175,7 +184,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                for (int i = 0; i < 3; i++) _buildPlayerInputFields(i),
+                for (int i = 0; i < 3; i++) _buildPlayerInputFields(i, context),
               ],
             ),
           ],
