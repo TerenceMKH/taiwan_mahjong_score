@@ -88,55 +88,87 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildPlayerScoreCard(int playerIndex, BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
-    double fontSize = screenWidth > 600 ? 24 : 18;
+    double fontSize = screenWidth > 600 ? 24 : 16; // Smaller font size for small screens
+    bool isSmallScreen = screenWidth < 600; // Check if the screen is small
 
-    return Column(
-      children: [
-        Text(
-          playerNames[playerIndex],
-          style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.bold),
-        ),
-        SizedBox(height: 8),
-        Text(
-          '${totalScores[playerIndex]}',
-          style: TextStyle(
-            fontSize: fontSize + 6,
-            fontWeight: FontWeight.bold,
-            color: totalScores[playerIndex] >= 0 ? Colors.green : Colors.red,
-          ),
-        ),
-        SizedBox(height: 8),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
+    return Card(
+      margin: EdgeInsets.all(8.0),
+      child: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
           children: [
-            ElevatedButton(
-              onPressed: () => _kickHalf(playerIndex),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.grey[300], // Light grey background
-                foregroundColor: Colors.black, // Black text
-              ),
-              child: Text('劈半'),
+            Text(
+              playerNames[playerIndex],
+              style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.bold),
             ),
-            SizedBox(width: 16),
-            ElevatedButton(
-              onPressed: () => _clearScore(playerIndex),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.grey[300], // Light grey background
-                foregroundColor: Colors.black, // Black text
+            SizedBox(height: 8),
+            Text(
+              '${totalScores[playerIndex]}',
+              style: TextStyle(
+                fontSize: fontSize + 6,
+                fontWeight: FontWeight.bold,
+                color: totalScores[playerIndex] >= 0 ? Colors.green : Colors.red,
               ),
-              child: Text('找數'),
             ),
+            SizedBox(height: 8),
+            // Stack buttons vertically on small screens
+            if (isSmallScreen)
+              Column(
+                children: [
+                  ElevatedButton(
+                    onPressed: () => _kickHalf(playerIndex),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey[300], // Light grey background
+                      foregroundColor: Colors.black, // Black text
+                    ),
+                    child: Text('劈半'),
+                  ),
+                  SizedBox(height: 8),
+                  ElevatedButton(
+                    onPressed: () => _clearScore(playerIndex),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey[300], // Light grey background
+                      foregroundColor: Colors.black, // Black text
+                    ),
+                    child: Text('找數'),
+                  ),
+                ],
+              )
+            else
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                    onPressed: () => _kickHalf(playerIndex),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey[300], // Light grey background
+                      foregroundColor: Colors.black, // Black text
+                    ),
+                    child: Text('劈半'),
+                  ),
+                  SizedBox(width: 16),
+                  ElevatedButton(
+                    onPressed: () => _clearScore(playerIndex),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey[300], // Light grey background
+                      foregroundColor: Colors.black, // Black text
+                    ),
+                    child: Text('找數'),
+                  ),
+                ],
+              ),
           ],
         ),
-      ],
+      ),
     );
   }
 
   Widget _buildPlayerInputFields(int playerIndex, BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
-    double padding = screenWidth > 600 ? 24.0 : 16.0;
+    double padding = screenWidth > 600 ? 16.0 : 8.0;
 
-    return Expanded(
+    return SizedBox(
+      width: screenWidth > 600 ? 200 : 120, // Thinner input fields
       child: Card(
         margin: EdgeInsets.all(padding),
         child: Padding(
@@ -169,25 +201,22 @@ class _HomeScreenState extends State<HomeScreen> {
         title: Text('台灣麻將分數記錄'),
       ),
       body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Padding(
-              padding: EdgeInsets.all(padding),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  for (int i = 0; i < 3; i++) _buildPlayerScoreCard(i, context),
-                ],
-              ),
-            ),
-            Divider(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                for (int i = 0; i < 3; i++) _buildPlayerInputFields(i, context),
-              ],
-            ),
-          ],
+        scrollDirection: screenWidth > 600 ? Axis.vertical : Axis.horizontal,
+        child: Padding(
+          padding: EdgeInsets.all(padding),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (int i = 0; i < 3; i++)
+                Column(
+                  children: [
+                    _buildPlayerScoreCard(i, context),
+                    SizedBox(height: 16),
+                    _buildPlayerInputFields(i, context),
+                  ],
+                ),
+            ],
+          ),
         ),
       ),
     );
