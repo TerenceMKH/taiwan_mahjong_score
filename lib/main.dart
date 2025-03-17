@@ -30,6 +30,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<String> playerNames = ['上家', '對家', '下家']; // 固定玩家名稱
   List<bool> isNegative = [false, false, false]; // Track if total score is negative
   late List<List<FocusNode>> focusNodes;
+  List<int?> playerRecords = [null, null, null]; // Latest record for each player
 
   @override
   void initState() {
@@ -81,6 +82,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _clearScore(int playerIndex) {
     setState(() {
+      // Save the current total score as the latest record for the player
+      playerRecords[playerIndex] = totalScores[playerIndex];
+
+      // Reset the total score and input fields
       totalScores[playerIndex] = 0;
       scores[playerIndex] = List.filled(6, 0); // Reset scores to 0
       controllers[playerIndex] = List.generate(6, (index) => TextEditingController()); // Reset controllers
@@ -90,6 +95,52 @@ class _HomeScreenState extends State<HomeScreen> {
   // Helper function to normalize -0.0 to 0
   String _normalizeScore(int score) {
     return score == 0 ? '0' : score.toString();
+  }
+
+  // Show records in a modal dialog
+  void _showRecords(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('玩家記錄'),
+          content: SingleChildScrollView(
+            child: Column(
+              children: [
+                for (int i = 0; i < playerNames.length; i++)
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        playerNames[i],
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 8),
+                      if (playerRecords[i] == null)
+                        Text('無記錄')
+                      else
+                        Text(
+                          '最新記錄: ${_normalizeScore(playerRecords[i]!)}',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      SizedBox(height: 16),
+                    ],
+                  ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('關閉'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Widget _buildPlayerScoreCard(int playerIndex, BuildContext context) {
@@ -226,6 +277,28 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('台灣麻將番數記錄'), // Updated title
+        actions: [
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 8.0),
+            child: ElevatedButton(
+              onPressed: () => _showRecords(context), // Show records when clicked
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.grey[800], // Dark grey background
+                foregroundColor: Colors.white, // White text color
+                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0), // Padding inside the button
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(4.0), // Less rounded corners
+                ),
+              ),
+              child: Text(
+                '記錄',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold, // Bold text
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         reverse: true, // Scroll to the bottom when keyboard appears
