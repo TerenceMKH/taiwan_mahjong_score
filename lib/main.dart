@@ -32,24 +32,15 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     // 初始化 controllers 和 scores
-    controllers = List.generate(3, (playerIndex) => [TextEditingController()]);
-    scores = List.generate(3, (playerIndex) => []);
+    controllers = List.generate(3, (playerIndex) => List.generate(6, (index) => TextEditingController()));
+    scores = List.generate(3, (playerIndex) => List.filled(6, 0));
   }
 
   void _updateScore(int playerIndex, int fieldIndex, String value) {
     setState(() {
       int points = int.tryParse(value) ?? 0;
-      if (scores[playerIndex].length > fieldIndex) {
-        scores[playerIndex][fieldIndex] = points;
-      } else {
-        scores[playerIndex].add(points);
-      }
+      scores[playerIndex][fieldIndex] = points;
       _calculateTotalScore(playerIndex);
-
-      // 自動添加新的輸入欄位
-      if (fieldIndex == controllers[playerIndex].length - 1 && value.isNotEmpty) {
-        controllers[playerIndex].add(TextEditingController());
-      }
     });
   }
 
@@ -80,9 +71,8 @@ class _HomeScreenState extends State<HomeScreen> {
   void _clearScore(int playerIndex) {
     setState(() {
       totalScores[playerIndex] = 0;
-      scores[playerIndex].clear();
-      controllers[playerIndex].clear();
-      controllers[playerIndex].add(TextEditingController()); // Add one empty field
+      scores[playerIndex] = List.filled(6, 0);
+      controllers[playerIndex] = List.generate(6, (index) => TextEditingController());
     });
   }
 
@@ -166,6 +156,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildPlayerInputFields(int playerIndex, BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     double padding = screenWidth > 600 ? 16.0 : 8.0;
+    double fontSize = screenWidth > 600 ? 18 : 14; // Adjusted font size for input fields
 
     return SizedBox(
       width: screenWidth > 600 ? 200 : 120, // Thinner input fields
@@ -178,10 +169,14 @@ class _HomeScreenState extends State<HomeScreen> {
               for (int j = 0; j < controllers[playerIndex].length; j++)
                 TextField(
                   controller: controllers[playerIndex][j],
-                  keyboardType: TextInputType.number,
+                  keyboardType: TextInputType.numberWithOptions(signed: true), // Allow "-" sign
                   onChanged: (value) => _updateScore(playerIndex, j, value),
+                  style: TextStyle(
+                    fontSize: fontSize,
+                    color: (int.tryParse(controllers[playerIndex][j].text) ?? 0) >= 0 ? Colors.green : Colors.red,
+                  ),
                   decoration: InputDecoration(
-                    labelText: controllers[playerIndex][j].text.isEmpty ? '-' : null, // Hide "-" after input
+                    labelText: null, // No label text
                   ),
                 ),
             ],
