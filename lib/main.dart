@@ -28,13 +28,16 @@ class _HomeScreenState extends State<HomeScreen> {
   late List<List<int>> scores;
   List<int> totalScores = [0, 0, 0]; // 三位玩家的總分
   List<String> playerNames = ['上家', '對家', '下家']; // 固定玩家名稱
+  List<bool> isNegative = [false, false, false]; // Track if total score is negative
+  late List<List<FocusNode>> focusNodes;
 
   @override
   void initState() {
     super.initState();
-    // 初始化 controllers 和 scores
+    // 初始化 controllers, scores, and focusNodes
     controllers = List.generate(3, (playerIndex) => List.generate(6, (index) => TextEditingController()));
     scores = List.generate(3, (playerIndex) => List.filled(6, 0));
+    focusNodes = List.generate(3, (playerIndex) => List.generate(6, (index) => FocusNode()));
   }
 
   void _updateScore(int playerIndex, int fieldIndex, String value) {
@@ -55,16 +58,23 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
     setState(() {
-      totalScores[playerIndex] = total;
+      totalScores[playerIndex] = isNegative[playerIndex] ? -total : total;
+    });
+  }
+
+  void _toggleSign(int playerIndex) {
+    setState(() {
+      isNegative[playerIndex] = !isNegative[playerIndex];
+      _calculateTotalScore(playerIndex); // Recalculate total score with new sign
     });
   }
 
   void _kickHalf(int playerIndex) {
     setState(() {
       if (totalScores[playerIndex] < 0) {
-        totalScores[playerIndex] = (totalScores[playerIndex] / 2).ceil();
+        totalScores[playerIndex] = (totalScores[playerIndex] / 2).ceil(); // Round up for negative
       } else {
-        totalScores[playerIndex] = (totalScores[playerIndex] / 2).floor();
+        totalScores[playerIndex] = (totalScores[playerIndex] / 2).floor(); // Round down for positive
       }
     });
   }
@@ -72,10 +82,14 @@ class _HomeScreenState extends State<HomeScreen> {
   void _clearScore(int playerIndex) {
     setState(() {
       totalScores[playerIndex] = 0;
-      scores[playerIndex].clear();
-      controllers[playerIndex].clear();
-      controllers[playerIndex].add(TextEditingController()); // Add one empty field
+      scores[playerIndex] = List.filled(6, 0); // Reset scores to 0
+      controllers[playerIndex] = List.generate(6, (index) => TextEditingController()); // Reset controllers
     });
+  }
+
+  // Helper function to normalize -0.0 to 0
+  String _normalizeScore(int score) {
+    return score == 0 ? '0' : score.toString();
   }
 
   Widget _buildPlayerScoreCard(int playerIndex, BuildContext context) {
@@ -95,7 +109,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             SizedBox(height: 8),
             Text(
-              '${totalScores[playerIndex]}',
+              _normalizeScore(totalScores[playerIndex]), // Normalize -0.0 to 0
               style: TextStyle(
                 fontSize: fontSize + 6,
                 fontWeight: FontWeight.bold,
@@ -124,6 +138,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     child: Text('找數'),
                   ),
+                  SizedBox(height: 8),
+                  ElevatedButton(
+                    onPressed: () => _toggleSign(playerIndex),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isNegative[playerIndex] ? Colors.red : Colors.green, // Green if positive, red if negative
+                      foregroundColor: Colors.white, // White text
+                    ),
+                    child: Text('+/-'),
+                  ),
                 ],
               )
             else
@@ -146,6 +169,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       foregroundColor: Colors.black, // Black text
                     ),
                     child: Text('找數'),
+                  ),
+                  SizedBox(width: 16),
+                  ElevatedButton(
+                    onPressed: () => _toggleSign(playerIndex),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isNegative[playerIndex] ? Colors.red : Colors.green, // Green if positive, red if negative
+                      foregroundColor: Colors.white, // White text
+                    ),
+                    child: Text('+/-'),
                   ),
                 ],
               ),
@@ -171,14 +203,15 @@ class _HomeScreenState extends State<HomeScreen> {
               for (int j = 0; j < controllers[playerIndex].length; j++)
                 TextField(
                   controller: controllers[playerIndex][j],
-                  keyboardType: TextInputType.numberWithOptions(signed: true), // Allow "-" sign
+                  focusNode: focusNodes[playerIndex][j],
+                  keyboardType: TextInputType.number,
                   inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'^-?\d*')), // Allow digits and optional "-" at the start
+                    FilteringTextInputFormatter.allow(RegExp(r'^\d*')), // Allow only positive integers
                   ],
                   onChanged: (value) => _updateScore(playerIndex, j, value),
                   style: TextStyle(
                     fontSize: fontSize,
-                    color: (int.tryParse(controllers[playerIndex][j].text) ?? 0) >= 0 ? Colors.green : Colors.red,
+                    color: Colors.black, // Input text color
                   ),
                   decoration: InputDecoration(
                     labelText: null, // No label text
@@ -201,20 +234,26 @@ class _HomeScreenState extends State<HomeScreen> {
         title: Text('台灣麻將分數記錄'),
       ),
       body: SingleChildScrollView(
-        scrollDirection: screenWidth > 600 ? Axis.vertical : Axis.horizontal,
+        reverse: true, // Scroll to the bottom when keyboard appears
         child: Padding(
           padding: EdgeInsets.all(padding),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Column(
             children: [
-              for (int i = 0; i < 3; i++)
-                Column(
-                  children: [
-                    _buildPlayerScoreCard(i, context),
-                    SizedBox(height: 16),
-                    _buildPlayerInputFields(i, context),
-                  ],
-                ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (int i = 0; i < 3; i++)
+                    Expanded(
+                      child: Column(
+                        children: [
+                          _buildPlayerScoreCard(i, context),
+                          SizedBox(height: 16),
+                          _buildPlayerInputFields(i, context),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
             ],
           ),
         ),
