@@ -95,7 +95,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildPlayerScoreCard(int playerIndex, BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     double fontSize = screenWidth > 600 ? 24 : 20; // Larger font size for player name
-    double buttonFontSize = screenWidth > 600 ? 20 : 18; // Larger font size for buttons
+    double buttonFontSize = screenWidth > 600 ? 18 : 16; // Larger font size for buttons
     bool isSmallScreen = screenWidth < 600; // Check if the screen is small
 
     return Card(
@@ -118,51 +118,64 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             SizedBox(height: 16),
-            // Buttons in a single row
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+            // Buttons in a wrap to allow multiple rows if needed
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 16, // Horizontal spacing between buttons
+              runSpacing: 16, // Vertical spacing between rows
               children: [
-                ElevatedButton(
+                _buildButton(
+                  text: '劈半',
                   onPressed: () => _kickHalf(playerIndex),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey[300], // Light grey background
-                    foregroundColor: Colors.black, // Black text
-                    minimumSize: Size(120, 48), // Wider button (width: 120, height: 48)
-                  ),
-                  child: Text(
-                    '劈半',
-                    style: TextStyle(fontSize: buttonFontSize),
-                  ),
+                  backgroundColor: Colors.grey[300]!,
+                  foregroundColor: Colors.black,
+                  fontSize: buttonFontSize,
                 ),
-                SizedBox(width: 16),
-                ElevatedButton(
+                _buildButton(
+                  text: '找數',
                   onPressed: () => _clearScore(playerIndex),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey[300], // Light grey background
-                    foregroundColor: Colors.black, // Black text
-                    minimumSize: Size(120, 48), // Wider button (width: 120, height: 48)
-                  ),
-                  child: Text(
-                    '找數',
-                    style: TextStyle(fontSize: buttonFontSize),
-                  ),
+                  backgroundColor: Colors.grey[300]!,
+                  foregroundColor: Colors.black,
+                  fontSize: buttonFontSize,
                 ),
-                SizedBox(width: 16),
-                ElevatedButton(
+                _buildButton(
+                  text: '+/-',
                   onPressed: () => _toggleSign(playerIndex),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: isNegative[playerIndex] ? Colors.red : Colors.green, // Green if positive, red if negative
-                    foregroundColor: Colors.white, // White text
-                    minimumSize: Size(120, 48), // Wider button (width: 120, height: 48)
-                  ),
-                  child: Text(
-                    '+/-',
-                    style: TextStyle(fontSize: buttonFontSize),
-                  ),
+                  backgroundColor: isNegative[playerIndex] ? Colors.red : Colors.green,
+                  foregroundColor: Colors.white,
+                  fontSize: buttonFontSize,
                 ),
               ],
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildButton({
+    required String text,
+    required VoidCallback onPressed,
+    required Color backgroundColor,
+    required Color foregroundColor,
+    required double fontSize,
+  }) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: backgroundColor,
+        foregroundColor: foregroundColor,
+        minimumSize: Size(120, 36), // Wider and shorter button (width: 120, height: 36)
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(4), // Less rounded corners
+        ),
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8), // Padding inside the button
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: fontSize,
+          fontWeight: FontWeight.bold, // Bold text
         ),
       ),
     );
