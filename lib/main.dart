@@ -27,13 +27,15 @@ class _HomeScreenState extends State<HomeScreen> {
   late List<List<int>> scores;
   List<int> totalScores = [0, 0, 0]; // 三位玩家的總分
   List<String> playerNames = ['上家', '對家', '下家']; // 固定玩家名稱
+  late List<List<FocusNode>> focusNodes;
 
   @override
   void initState() {
     super.initState();
-    // 初始化 controllers 和 scores
+    // 初始化 controllers, scores, and focusNodes
     controllers = List.generate(3, (playerIndex) => List.generate(6, (index) => TextEditingController()));
     scores = List.generate(3, (playerIndex) => List.filled(6, 0));
+    focusNodes = List.generate(3, (playerIndex) => List.generate(6, (index) => FocusNode()));
   }
 
   void _updateScore(int playerIndex, int fieldIndex, String value) {
@@ -167,22 +169,56 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             children: [
               for (int j = 0; j < controllers[playerIndex].length; j++)
-                TextField(
-                  controller: controllers[playerIndex][j],
-                  keyboardType: TextInputType.numberWithOptions(signed: true), // Allow "-" sign
-                  onChanged: (value) => _updateScore(playerIndex, j, value),
-                  style: TextStyle(
-                    fontSize: fontSize,
-                    color: (int.tryParse(controllers[playerIndex][j].text) ?? 0) >= 0 ? Colors.green : Colors.red,
-                  ),
-                  decoration: InputDecoration(
-                    labelText: null, // No label text
-                  ),
+                Column(
+                  children: [
+                    TextField(
+                      controller: controllers[playerIndex][j],
+                      focusNode: focusNodes[playerIndex][j],
+                      keyboardType: TextInputType.numberWithOptions(signed: true), // Allow "-" sign
+                      onChanged: (value) => _updateScore(playerIndex, j, value),
+                      style: TextStyle(
+                        fontSize: fontSize,
+                        color: (int.tryParse(controllers[playerIndex][j].text) ?? 0) >= 0 ? Colors.green : Colors.red,
+                      ),
+                      decoration: InputDecoration(
+                        labelText: null, // No label text
+                      ),
+                    ),
+                    if (j == controllers[playerIndex].length - 1)
+                      _buildCustomKeyboardRow(playerIndex, j),
+                  ],
                 ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildCustomKeyboardRow(int playerIndex, int fieldIndex) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        IconButton(
+          icon: Icon(Icons.remove),
+          onPressed: () {
+            // Insert "-" sign at the beginning of the text
+            final controller = controllers[playerIndex][fieldIndex];
+            final text = controller.text;
+            if (!text.startsWith('-')) {
+              controller.text = '-$text';
+              controller.selection = TextSelection.fromPosition(TextPosition(offset: controller.text.length));
+            }
+          },
+        ),
+        IconButton(
+          icon: Icon(Icons.keyboard_return),
+          onPressed: () {
+            // Unfocus the current input field
+            focusNodes[playerIndex][fieldIndex].unfocus();
+          },
+        ),
+      ],
     );
   }
 
