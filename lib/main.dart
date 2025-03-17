@@ -9,7 +9,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: '台灣麻將分數記錄',
+      title: '台灣麻將番數記錄',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
@@ -94,7 +94,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildPlayerScoreCard(int playerIndex, BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
-    double fontSize = screenWidth > 600 ? 24 : 16; // Smaller font size for small screens
+    double fontSize = screenWidth > 600 ? 24 : 20; // Larger font size for player name
+    double buttonFontSize = screenWidth > 600 ? 20 : 18; // Larger font size for buttons
     bool isSmallScreen = screenWidth < 600; // Check if the screen is small
 
     return Card(
@@ -116,71 +117,51 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: totalScores[playerIndex] >= 0 ? Colors.green : Colors.red,
               ),
             ),
-            SizedBox(height: 8),
-            // Stack buttons vertically on small screens
-            if (isSmallScreen)
-              Column(
-                children: [
-                  ElevatedButton(
-                    onPressed: () => _kickHalf(playerIndex),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey[300], // Light grey background
-                      foregroundColor: Colors.black, // Black text
-                    ),
-                    child: Text('劈半'),
+            SizedBox(height: 16),
+            // Buttons in a single row
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: () => _kickHalf(playerIndex),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.grey[300], // Light grey background
+                    foregroundColor: Colors.black, // Black text
+                    minimumSize: Size(120, 48), // Wider button (width: 120, height: 48)
                   ),
-                  SizedBox(height: 8),
-                  ElevatedButton(
-                    onPressed: () => _clearScore(playerIndex),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey[300], // Light grey background
-                      foregroundColor: Colors.black, // Black text
-                    ),
-                    child: Text('找數'),
+                  child: Text(
+                    '劈半',
+                    style: TextStyle(fontSize: buttonFontSize),
                   ),
-                  SizedBox(height: 8),
-                  ElevatedButton(
-                    onPressed: () => _toggleSign(playerIndex),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: isNegative[playerIndex] ? Colors.red : Colors.green, // Green if positive, red if negative
-                      foregroundColor: Colors.white, // White text
-                    ),
-                    child: Text('+/-'),
+                ),
+                SizedBox(width: 16),
+                ElevatedButton(
+                  onPressed: () => _clearScore(playerIndex),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.grey[300], // Light grey background
+                    foregroundColor: Colors.black, // Black text
+                    minimumSize: Size(120, 48), // Wider button (width: 120, height: 48)
                   ),
-                ],
-              )
-            else
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton(
-                    onPressed: () => _kickHalf(playerIndex),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey[300], // Light grey background
-                      foregroundColor: Colors.black, // Black text
-                    ),
-                    child: Text('劈半'),
+                  child: Text(
+                    '找數',
+                    style: TextStyle(fontSize: buttonFontSize),
                   ),
-                  SizedBox(width: 16),
-                  ElevatedButton(
-                    onPressed: () => _clearScore(playerIndex),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey[300], // Light grey background
-                      foregroundColor: Colors.black, // Black text
-                    ),
-                    child: Text('找數'),
+                ),
+                SizedBox(width: 16),
+                ElevatedButton(
+                  onPressed: () => _toggleSign(playerIndex),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isNegative[playerIndex] ? Colors.red : Colors.green, // Green if positive, red if negative
+                    foregroundColor: Colors.white, // White text
+                    minimumSize: Size(120, 48), // Wider button (width: 120, height: 48)
                   ),
-                  SizedBox(width: 16),
-                  ElevatedButton(
-                    onPressed: () => _toggleSign(playerIndex),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: isNegative[playerIndex] ? Colors.red : Colors.green, // Green if positive, red if negative
-                      foregroundColor: Colors.white, // White text
-                    ),
-                    child: Text('+/-'),
+                  child: Text(
+                    '+/-',
+                    style: TextStyle(fontSize: buttonFontSize),
                   ),
-                ],
-              ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -231,29 +212,25 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('台灣麻將分數記錄'),
+        title: Text('台灣麻將番數記錄'), // Updated title
       ),
       body: SingleChildScrollView(
         reverse: true, // Scroll to the bottom when keyboard appears
         child: Padding(
           padding: EdgeInsets.all(padding),
-          child: Column(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  for (int i = 0; i < 3; i++)
-                    Expanded(
-                      child: Column(
-                        children: [
-                          _buildPlayerScoreCard(i, context),
-                          SizedBox(height: 16),
-                          _buildPlayerInputFields(i, context),
-                        ],
-                      ),
-                    ),
-                ],
-              ),
+              for (int i = 0; i < 3; i++)
+                Expanded(
+                  child: Column(
+                    children: [
+                      _buildPlayerScoreCard(i, context),
+                      SizedBox(height: 16),
+                      _buildPlayerInputFields(i, context),
+                    ],
+                  ),
+                ),
             ],
           ),
         ),
